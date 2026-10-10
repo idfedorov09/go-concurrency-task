@@ -65,8 +65,12 @@ func Crawl(startUrl string, depth int, fetcher crawl.Fetcher) {
 	queue := make(chan depthedType, 1)
 	queue <- depthedType{startUrl, depth}
 
+	wg := sync.WaitGroup{}
+
 	for cur := range queue {
+		wg.Add(1)
 		go func() {
+			defer wg.Done()
 			defer func() {
 				if pending.Add(-1) == 0 {
 					close(queue)
@@ -83,4 +87,6 @@ func Crawl(startUrl string, depth int, fetcher crawl.Fetcher) {
 			}
 		}()
 	}
+
+	wg.Wait()
 }
